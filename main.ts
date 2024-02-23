@@ -11,6 +11,19 @@ import {
 	decodeAsyncGenerator,
   } from 'gpt-tokenizer'
 
+
+function extractRoleValue(text: string): string {
+	const roleRegex = /Role:([\s\S]+?)\n[\s\S]+?---/g;
+	const matches = roleRegex.exec(text);
+
+	if (matches && matches.length > 1) {
+		const roleValue = matches[1].trim();
+		return roleValue;
+	}
+
+	return '';
+}
+
 async function payload(url:string, data:any, apiKey:string){
 	const headers = {
 	  Authorization: `Bearer ${apiKey}`,
@@ -273,6 +286,8 @@ export default class MyPlugin extends Plugin {
 		}
 		)
 
+
+		
 		// TODO: 中译英
 		this.addCommand({
 			id: "translate_zh",
@@ -289,9 +304,25 @@ export default class MyPlugin extends Plugin {
 		this.addCommand({
 			id: "question_for_mantou",
 			name: "🐶向馒头提问",
-			editorCallback: (editor: Editor) => operation_on_selection(
+			editorCallback: (editor: Editor) => {
+				var editorView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				var role = META_ROLE
+
+				if (!editorView) {
+					console.log('...')
+				}else{
+					const markdownText = editorView.data;
+					var temp_role = extractRoleValue(markdownText)
+					console.log('TEMP ROLE:', temp_role)
+					if(temp_role.length != 0){
+						role = temp_role
+					} 
+					console.log('ROLE:', role)
+				}
+				
+				operation_on_selection(
 				editor, 
-				META_ROLE,
+				role,
 				'',
 				'', this.settings.api_key,
 				(x:string)=> {
@@ -303,7 +334,8 @@ export default class MyPlugin extends Plugin {
 				(x:string)=>{
 					x = `> [!NOTE] ${x}`
 					return x
-				})
+				});
+			}
 		}
 		)
 
