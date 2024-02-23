@@ -3,11 +3,11 @@
   <img src="imgs/logo.png" width=300 height=300 alt="MantouGPT Logo"/>
 </p>
 <p align="center">
-  <em>*MantouAI*是为每个人设计的开放个人助手（生活在Obsidian职中），它能协助办公学习、聊天、（未来：上网、写报告、规划旅行...） </em>
+  <em>*MantouAI*是为每个人设计的开放个人助手（生活在Obsidian之中），它能协助办公学习、聊天、（未来：上网、写报告、规划旅行...） </em>
 </p>
 
 
-## 1. 什么是MantouAI？
+## 1. 什么是MantouAI🐶？
 * MantouAI = **馒头AI**（PS：我们家有一只不会动的柴犬馒头，老婆想让它动起来）
 * 一款集成AI大模型的Obsidian插件
 * Obsidian + MantouAI = X书助手、X钉魔法棒、NotionAI
@@ -17,7 +17,7 @@
 ---
 
 
-## 2. 功能介绍 （喜欢的话，务必Star⭐哦，拜托了）
+## 2. 功能介绍🥰 （喜欢的话，务必Star⭐哦，拜托了）
 ---
 ### 2.1 万能提问
 * 任意选中文字，向馒头提问吧
@@ -56,7 +56,7 @@
 </p>
 
 ---
-## 3. 开始使用吧!
+## 3. 开始使用吧👐!
 ### 3.1 开箱即用
 1. Releases下载MantouAI-v0.1.zip
 2. 放到Obsidian Vault的plugins文件夹，解压缩
@@ -87,12 +87,12 @@
 	- [ ] 连接Obsidian其他插件，自主Agent
 	- [ ] ...
 
-## 5. 注意事项
+## 5. 注意事项⚠︎
 * 当前版本接入通义大模型，需联网（过于敏感的数据请勿使用）
 * 请遵守负责任使用AI的原则，任何滥用与本代码库无关
 * ...
 
-## 6. 为什么开发MantouAI？All-in-Obsidian! 
+## 6. 为什么开发MantouAI？All-in-Obsidian! ❓
 * A: 使用网页版大模型各种复制文档，好麻烦...
 * B: 写一个webui界面，大家还得命令行开启，不如obsidian插件自然...
 * 你觉得呢？
