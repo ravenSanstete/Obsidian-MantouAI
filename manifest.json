@@ -1,11 +1,11 @@
 {
-	"id": "MantouAI",
+	"id": "mantou-ai",
 	"name": "MantouAI",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "MantouAI is designed as an open personal assistant for all, embedded within the Obsidian ecosystem, aimed at facilitating tasks across office work, learning, and casual conversation. It serves to enhance scholarly engagement by providing support in these domains through its functionalities.",
 	"author": "Morino Pan",
 	"authorUrl": "https://ravensanstete.github.io/",
-	"fundingUrl": "",
+	"fundingUrl": "https://ravensanstete.github.io/",
 	"isDesktopOnly": false
 }
