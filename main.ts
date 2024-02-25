@@ -1,16 +1,10 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, moment, Menu, requestUrl, RequestUrlParam} from 'obsidian';
+import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, Menu, requestUrl} from 'obsidian';
 // Remember to rename these classes and interfaces!
 
 import {
 	encode,
-	encodeChat,
 	decode,
-	isWithinTokenLimit,
-	encodeGenerator,
-	decodeGenerator,
-	decodeAsyncGenerator,
   } from 'gpt-tokenizer'
-
 
 function extractRoleValue(text: string): string {
 	const roleRegex = /Role:([\s\S]+?)\n[\s\S]+?---/g;
@@ -34,7 +28,7 @@ async function payload(url:string, data:any, apiKey:string){
 		console.log(JSON.stringify(data))
 		const response = await requestUrl({url:url, method:'POST', headers:headers, body:JSON.stringify(data)});
 		
-		var out = JSON.parse(response.text)
+		let out = JSON.parse(response.text)
 		console.log(out)
 		return out['output']['text']
 	  } catch (error) {
@@ -59,11 +53,11 @@ function create_newline(editor: Editor){
 
 
 
-interface MyPluginSettings {
+interface MantouAIPluginSettings {
 	api_key: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: MantouAIPluginSettings = {
 	api_key: 'sk-xxxxxx'
 }
 
@@ -77,7 +71,7 @@ function operation_on_selection(editor: Editor, sys: string, user_prefix: string
 		'user_prompt': user_prefix + selection + user_suffix
 		};
 	
-	var notice = new Notice('馒头：U•ェ•*U努力思考中...', 0)
+	let notice = new Notice('馒头：U•ェ•*U努力思考中...', 0)
 	chat(data['user_prompt'], data['system_prompt'], api_key)
 		.then((result) => {
 			// update the editor
@@ -101,7 +95,7 @@ function splitTextOnTokens(text: string, tokensPerChunk: number): string[] {
 	const inputIds = encode(text);
 	let startIdx = 0;
 	let curIdx = Math.min(startIdx + tokensPerChunk, inputIds.length);
-	var chunkIds = inputIds.slice(startIdx, curIdx);
+	let chunkIds = inputIds.slice(startIdx, curIdx);
   
 	while (startIdx < inputIds.length) {
 	  splits.push(decode(chunkIds));
@@ -195,8 +189,8 @@ function addGreaterThanSign(text: string): string {
 	return modifiedLines.join('\n');
   }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class MantouAIPlugin extends Plugin {
+	settings: MantouAIPluginSettings;
 	// util codes
 	async appendFile(filePath: string, note: string) {
 		let existingContent = await this.app.vault.adapter.read(filePath);
@@ -231,16 +225,16 @@ export default class MyPlugin extends Plugin {
 					if(file.extension !== 'md') return;
 					
 					const file_name = '[摘要] ' + file.name;
-					var folder:string = file.parent.path
-					var summary_list:string[] = []
+					let folder:string = file.parent.path
+					let summary_list:string[] = []
 					this.app.vault.read(file)
 					.then(async (text: string) => {
 					// console.log(text); // Output: Contents of the file
-					var splits = splitTextOnTokens(text, 1000)
+					let splits = splitTextOnTokens(text, 1000)
 					
 					for (let index = 0; index < splits.length; index++){
 						console.log(splits[index])
-						var summary:string = await summarize_chunk(splits[index], this.settings.api_key)
+						let summary:string = await summarize_chunk(splits[index], this.settings.api_key)
 						summary_list.push(summary)
 						await this.saveToFile(`${folder}/${file_name}`,  summary);
 						
@@ -259,20 +253,6 @@ export default class MyPlugin extends Plugin {
 			);	  
 			menu.showAtMouseEvent(event);
 		  });
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-
 
 		// TODO: 英译中
 		this.addCommand({
@@ -401,47 +381,8 @@ export default class MyPlugin extends Plugin {
 		}
 		)
 
-		
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
-		});
-
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addSettingTab(new MantouAISettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -457,26 +398,11 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+class MantouAISettingTab extends PluginSettingTab {
+	plugin: MantouAIPlugin;
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: MantouAIPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
