@@ -285,14 +285,14 @@ export default class MantouAIPlugin extends Plugin {
 			id: "question_for_mantou",
 			name: "🐶向馒头提问",
 			editorCallback: (editor: Editor) => {
-				var editorView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				var role = META_ROLE
+				let editorView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				let role = META_ROLE
 
 				if (!editorView) {
 					console.log('...')
 				}else{
 					const markdownText = editorView.data;
-					var temp_role = extractRoleValue(markdownText)
+					let temp_role = extractRoleValue(markdownText)
 					console.log('TEMP ROLE:', temp_role)
 					if(temp_role.length != 0){
 						role = temp_role
