@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, Menu, requestUrl} from 'obsidian';
+import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, Menu, requestUrl, normalizePath} from 'obsidian';
 // Remember to rename these classes and interfaces!
 
 import {
@@ -25,11 +25,9 @@ async function payload(url:string, data:any, apiKey:string){
 	};
 
 	try {
-		console.log(JSON.stringify(data))
 		const response = await requestUrl({url:url, method:'POST', headers:headers, body:JSON.stringify(data)});
 		
 		let out = JSON.parse(response.text)
-		console.log(out)
 		return out['output']['text']
 	  } catch (error) {
 		console.error('Error:', error);
@@ -58,7 +56,7 @@ interface MantouAIPluginSettings {
 }
 
 const DEFAULT_SETTINGS: MantouAIPluginSettings = {
-	api_key: 'sk-xxxxxx'
+	api_key: ''
 }
 
 function operation_on_selection(editor: Editor, sys: string, user_prefix: string, user_suffix:string, api_key:string, post_fn:any=(x:string)=>`\n---\n${x}\n`, selection_fn=(x:string)=>(x)){
@@ -76,7 +74,6 @@ function operation_on_selection(editor: Editor, sys: string, user_prefix: string
 		.then((result) => {
 			// update the editor
 		result = post_fn(result)
-		console.log('Response:', result);
 		notice.setMessage('馒头：U•ェ•*U完成啦！')
 		editor.replaceRange(result, editor.getCursor());
 		notice.hide()
@@ -131,15 +128,7 @@ async function chat(user_prompt:string, system_prompt:string="You are a helpful 
 		}
 	};
 	return payload(GENERATION_URL, requestData, api_key)
-	// .then((result) => {
-	// console.log('Response:', result);
-	// return result
-	// //editor.replaceRange(result['answer'], editor.getCursor());
-	// })
-	// .catch((error) => {
-	// 	console.error('Error:', error)
-	// 	return '[error]'
-	// 	});;
+
 }
 
 const URL = 'http://127.0.0.1:5200/query';
@@ -229,26 +218,22 @@ export default class MantouAIPlugin extends Plugin {
 					let summary_list:string[] = []
 					this.app.vault.read(file)
 					.then(async (text: string) => {
-					// console.log(text); // Output: Contents of the file
 					let splits = splitTextOnTokens(text, 1000)
 					
 					for (let index = 0; index < splits.length; index++){
-						console.log(splits[index])
 						let summary:string = await summarize_chunk(splits[index], this.settings.api_key)
 						summary_list.push(summary)
-						await this.saveToFile(`${folder}/${file_name}`,  summary);
+						await this.saveToFile(normalizePath(`${folder}/${file_name}`),  summary);
 						
 						new Notice(`馒头：U•ェ•*U努力阅读中 (${index+1}/${splits.length})`)
 					}
 					
-					// console.log(splits)
 					})
 					.catch((err: any) => {
 					console.error(err);
 					});
 										
 					await this.app.workspace.openLinkText(`${folder}/${file_name}`, '', true);
-				  //new Notice("Pasted");
 				})
 			);	  
 			menu.showAtMouseEvent(event);
@@ -289,15 +274,13 @@ export default class MantouAIPlugin extends Plugin {
 				let role = META_ROLE
 
 				if (!editorView) {
-					console.log('...')
+					return
 				}else{
-					const markdownText = editorView.data;
+					const markdownText = editor.getValue();
 					let temp_role = extractRoleValue(markdownText)
-					console.log('TEMP ROLE:', temp_role)
 					if(temp_role.length != 0){
 						role = temp_role
 					} 
-					console.log('ROLE:', role)
 				}
 				
 				operation_on_selection(
@@ -413,10 +396,9 @@ class MantouAISettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('DASHSCOPE APIKEY')
-			.setDesc('APIKEY: sk-xxxxxx')
+			.setName('Dashscope API Key')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
+				.setPlaceholder('APIKEY: sk-xxxxxx')
 				.setValue(this.plugin.settings.api_key)
 				.onChange(async (value) => {
 					this.plugin.settings.api_key = value;
