@@ -37,6 +37,7 @@ export default class MantouAISettingTab extends PluginSettingTab {
                         user_suffix: "",
                         role: META_ROLE,
                     },
+                    "add",
                     (prompt) => {
                         this.plugin.settings.preset_prompts.push(prompt);
                         this.plugin.saveSettings();
@@ -54,7 +55,15 @@ export default class MantouAISettingTab extends PluginSettingTab {
                     cb.setIcon("pencil").onClick(() => {
                         new PromptModal(
                             prompt,
-                            (prompt) => {},
+                            "edit",
+                            (prompt) => {
+                                let index = this.plugin.settings.preset_prompts.findIndex(
+                                    (p) => prompt.name === p.name
+                                );
+                                this.plugin.settings.preset_prompts[index] = prompt;
+                                this.plugin.saveSettings();
+                                this.display();
+                            },
                             () => {},
                             this.plugin
                         ).open();
@@ -107,6 +116,7 @@ export default class MantouAISettingTab extends PluginSettingTab {
 class PromptModal extends Modal {
     constructor(
         public prompt: Prompt,
+        public type: "add" | "edit",
         public save: (prompt: Prompt) => void,
         public cancel: () => void,
         public plugin: MantouAIPlugin
@@ -167,7 +177,10 @@ class PromptModal extends Modal {
     }
     onClose(): void {}
     test(): boolean {
-        if (this.plugin.settings.preset_prompts.map((p) => p.name).includes(this.prompt.name)) {
+        if (
+            this.type == "add" &&
+            this.plugin.settings.preset_prompts.map((p) => p.name).includes(this.prompt.name)
+        ) {
             new Notice("Prompt 名称重复，请修改", 2000);
             return false;
         }
